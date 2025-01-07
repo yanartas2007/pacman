@@ -1,31 +1,29 @@
 from classes_and_functions import *
 
 pygame.init()
-size = width, height = 1000, 800
+size = width, height = 1000, 860
 screen = pygame.display.set_mode(size)
 
 board = Board(10, 10)
 board.set_view(0, 0, 40)
 
-with open('data/levels') as f:  # 0 - пустота 1 - стена 2 - проход призраков
+with open('data/levels') as f:
     text = f.read()
 board.change_board([[int(j) for j in i.strip()] for i in text.split()])
 
-with open('data/itemlevels') as f:  # 0 - пустота 1 - стена 2 - проход призраков
-    text = f.read()
-board.change_itemboard([[int(j) for j in i.strip()] for i in text.split()])
+board.change_itemboard(12, 18)
 
 pm = pygame.sprite.Group()
 ghosts = pygame.sprite.Group()
-items = pygame.sprite.Group()
 
-pacman = Pacman(board, pm)
-Ghost1(board, ghosts)
-Ghost2(board, ghosts)
-Ghost3(board, ghosts)
-Ghost4(board, ghosts)
+pacman = Pacman(board, pm, coords=(12, 18))
+Ghost1(board, ghosts, coords=(10, 9))
+Ghost2(board, ghosts, coords=(11, 9))
+Ghost3(board, ghosts, coords=(12, 9))
+Ghost4(board, ghosts, coords=(13, 9))
 
 clock = pygame.time.Clock()
+lifes = 3
 
 running = True
 while running:
@@ -44,7 +42,12 @@ while running:
                 napr = 'd'
     screen.fill('black')
     time = clock.tick()
+
     board.render(screen)
+    score = board.score
+    board.time += time
+    board.update()
+    load_score(screen, score, lifes)
 
     pm.draw(screen)
     pm.update(time, napr)
