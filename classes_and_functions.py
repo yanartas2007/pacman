@@ -180,8 +180,15 @@ class Board:
 class AbstractMob(pygame.sprite.Sprite):  # Движущиеся объекты
     def __init__(self, board, *group, coords):
         super().__init__(*group)
-        self.image = load_image(
-            "Original_PacMan.png", -1)
+        self.images = []
+        self.images.append(pygame.image.load('data/r1.png'))
+        self.images.append(pygame.image.load('data/r2.png'))
+        self.images.append(pygame.image.load('data/r3.png'))
+        self.images.append(pygame.image.load('data/r4.png'))
+        self.images.append(pygame.image.load('data/r5.png'))
+        self.images.append(pygame.image.load('data/r6.png'))
+        self.index = 0
+        self.image = self.images[self.index]
         self.board = board
         self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
         self.rect = self.image.get_rect()
@@ -191,6 +198,12 @@ class AbstractMob(pygame.sprite.Sprite):  # Движущиеся объекты
         self.napr = 'r'
         self.x = self.board.left + self.board.cell_size * coords[0]
         self.y = self.board.top + self.board.cell_size * coords[1]
+
+    def updateanimation(self):
+        self.index += 1
+        if self.index >= len(self.images):
+            self.index = 0
+        self.image = self.images[self.index]
 
     def stabilize(self):
         '''без этой функции очень сложно попасть в проход в одну клетку. а еще если в результате ошибки обЪект окажется частично в стене, она вытолкнет его'''
@@ -461,3 +474,4 @@ class Pacman(AbstractMob):  # пакман
         self.stabilize()
         self.update_coords()
         self.board.getitem((self.x + self.rect.width // 2, self.y + self.rect.height // 2))
+        self.updateanimation()

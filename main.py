@@ -41,7 +41,7 @@ while running:
             elif event.key == pygame.K_DOWN:
                 napr = 'd'
     screen.fill('black')
-    time = clock.tick()
+    time = clock.tick(10)
 
     board.render(screen)
     score = board.score
