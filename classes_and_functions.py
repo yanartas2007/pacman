@@ -7,7 +7,7 @@ import pygame
 pygame.init()
 
 
-ANIMATIONSPEED = 300 # чем меньше тем быстрее меняется
+ANIMATIONSPEED = 100 # чем меньше тем быстрее меняется
 
 def pacman_died():
     print('GAME OVER')
@@ -212,6 +212,14 @@ class AbstractMob(pygame.sprite.Sprite):  # Движущиеся объекты
         else:
             self.timetochangeimage += tick
 
+        if self.napr == 'r':
+            self.image = self.images[self.index]
+        elif self.napr == 'd':
+            self.image = pygame.transform.rotate(self.images[self.index], -90)
+        elif self.napr == 'u':
+            self.image = pygame.transform.rotate(self.images[self.index], 90)
+        elif self.napr == 'l':
+            self.image = pygame.transform.flip(self.images[self.index], True, False)
 
     def stabilize(self):
         '''без этой функции очень сложно попасть в проход в одну клетку. а еще если в результате ошибки обЪект окажется частично в стене, она вытолкнет его'''
