@@ -17,10 +17,10 @@ pm = pygame.sprite.Group()
 ghosts = pygame.sprite.Group()
 
 pacman = Pacman(board, pm, coords=(12, 18))
-Ghost1(board, ghosts, coords=(10, 9))
-Ghost2(board, ghosts, coords=(11, 9))
-Ghost3(board, ghosts, coords=(12, 9))
-Ghost4(board, ghosts, coords=(13, 9))
+Ghost1(board, ghosts, coords=(10, 9), pacman=pm)
+Ghost2(board, ghosts, coords=(11, 9), pacman=pm)
+Ghost3(board, ghosts, coords=(12, 9), pacman=pm)
+Ghost4(board, ghosts, coords=(13, 9), pacman=pm)
 
 clock = pygame.time.Clock()
 lifes = 3
@@ -48,6 +48,13 @@ while running:
     board.time += time
     board.update()
     load_score(screen, score, lifes)
+
+    e = board.take_events()
+    if len(e) != 0:
+        for i in e:
+            if i == 'BigPoint':
+                for j in ghosts:
+                    j.run()
 
     pm.draw(screen)
     pm.update(time, napr)

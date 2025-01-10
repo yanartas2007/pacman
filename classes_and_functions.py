@@ -47,7 +47,7 @@ class Board:
         self.height = height
         self.board = [[0] * width for _ in range(
             height)]  # 0 - пустота 1 - стена 2 - проход призраков 3 - не отображается, место без предметов
-        self.itemboard = [[0] * width for _ in range(height)]  # 1 - точка 2 - фрукт
+        self.itemboard = [[0] * width for _ in range(height)]  # 1 - точка 2 - фрукт 3 - большая точка
         self.left = 10
         self.top = 10
         self.cell_size = 30
@@ -55,6 +55,7 @@ class Board:
         self.fruits = 0
         self.score = 0
         self.time = 0
+        self.events = []
 
     def change_board(self, new_board):
         '''изменяет поле. самостоятельно находит длину и ширину. поле должно быть прямоугольным,
@@ -76,6 +77,14 @@ class Board:
                         bcopy[n][f] = '*'
                         self.itemboard[n][f] = 1
                         self.points += 1
+        bigpoints = 0
+        while bigpoints < 5:
+            randompoint = (
+                random.randint(1, len(self.board[0]) - 1), random.randint(1, len(self.board) - 1))
+            if self.itemboard[randompoint[1]][randompoint[0]] == 1 and self.board[randompoint[1]][
+                randompoint[0]] == 0:
+                self.itemboard[randompoint[1]][randompoint[0]] = 3
+                bigpoints += 1
 
     def set_view(self, left, top, cell_size):
         self.left = left
@@ -114,6 +123,12 @@ class Board:
                     image1 = pygame.transform.scale(image, (self.cell_size, self.cell_size))
                     screen.blit(image1, (self.left + self.cell_size * i + 1,
                                          self.top + self.cell_size * j + 1))
+                if self.itemboard[j][i] == 3:
+                    kv = pygame.Rect(self.left + self.cell_size * i + 1 + self.cell_size // 4,
+                                     self.top + self.cell_size * j + 1 + self.cell_size // 4,
+                                     self.cell_size // 2,
+                                     self.cell_size // 2)
+                    pygame.draw.rect(screen, 'white', kv, 0)
 
     def getitem(self, pos):
         x = (pos[0] - self.left) // self.cell_size
@@ -126,6 +141,11 @@ class Board:
             self.itemboard[int(y)][int(x)] = 0
             self.score += random.choice((100, 150, 200, 250, 300))
             self.fruits -= 1
+        if self.itemboard[int(y)][int(x)] == 3:
+            self.itemboard[int(y)][int(x)] = 0
+            self.points -= 1
+            self.score += 50
+            self.events.append('BigPoint')
 
     def update(self):
         if self.points == 0:
@@ -150,6 +170,11 @@ class Board:
         y = (pos[1] - self.top) // self.cell_size
         return (int(x), int(y), self.board[int(y)][int(x)]) if (
                 x >= 0 and x < self.width and y >= 0 and y < self.height) else None
+
+    def take_events(self):
+        a = self.events[:]
+        self.events = []
+        return a
 
 
 class AbstractMob(pygame.sprite.Sprite):  # Движущиеся объекты
@@ -217,7 +242,7 @@ class AbstractMob(pygame.sprite.Sprite):  # Движущиеся объекты
 
 
 class AbstractGhost(AbstractMob):  # призраки
-    def __init__(self, screen, *group, coords):
+    def __init__(self, screen, *group, coords, pacman):
         super().__init__(screen, *group, coords=coords)
         self.image = load_image(
             "ghost.png", -1)  # картинка как заглушка
@@ -225,18 +250,18 @@ class AbstractGhost(AbstractMob):  # призраки
         self.update_coords()
         self.speed *= 0.8
         self.napr = 'r'
-        self.model = 2  # 1 - преследование 0 - рассеивание 2 - ожидание
+        self.mode = 2  # 1 - преследование 0 - рассеивание 2 - ожидание 3 - синий 4 - глаза
         self.mtime = 0
         self.randompoint = None
         self.timechangemodel = 30000
         self.respawntime = 0
+        self.runtime = 0
+        self.pacman = pacman
+        self.spawnpoint = (self.about()[0], self.about()[1], None)
 
     def targeting(self, target=(1, 1, 'r')):  # поиск пути
         x, y = self.board.get_cell((self.x + self.rect.width // 2, self.y + self.rect.height // 2))[:-1]
         x, y = int(x), int(y)
-
-        if x == target[0] and y == target[1]:
-            pacman_died()
 
         bcopy = [['#' if self.board.board[i][j] == 1 else ' ' for j in range(len(self.board.board[i]))] for i in
                  range(len(self.board.board))]
@@ -274,19 +299,47 @@ class AbstractGhost(AbstractMob):  # призраки
             return None
         return napr
 
-    def hide(self):  # функия рассеивания, альтарнативная модель поведения
-        pass
-
     def update(self, time, target=(1, 1, 'r')):  # вместо направления получает цель и сам преобразует в направление
-        if self.model == 2 and self.mtime < self.respawntime:
-            self.mtime += time
+        napr = None
+        if self.mode == 2:
+            if self.mtime < self.respawntime:
+                self.mtime += time
+            else:
+                self.mtime = 0
+                self.mode = 1
             return
-        if self.mtime > 30000 and random.randint(0, 10) == 5:
-            self.model = 0
+        elif self.mode == 3:
+            if self.runtime == 0:
+                self.mtime = 0
+                self.runtime = 20000
+                self.image = load_image(
+                    "fruit.png", -1)  # картинка как заглушка
+                self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+            if self.mtime < self.runtime:
+                self.mtime += time
+                runpoint = self.findrunpoint(target)
+                napr = self.targeting((runpoint[0], runpoint[1], None))
+            else:
+                self.image = load_image(
+                    "ghost.png", -1)  # картинка как заглушка
+                self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+                self.runtime = 0
+                self.mode = 1
+        elif self.mode == 4:
+            napr = self.targeting(self.spawnpoint)
+            if self.about()[:-1] == self.spawnpoint[:-1]:
+                self.mode = 2
+                self.image = load_image(
+                    "ghost.png", -1)  # картинка как заглушка
+                self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+                self.mtime = 0
+                self.respawntime = 30000
+        elif self.mtime > 30000 and random.randint(0, 10) == 5:
+            self.mode = 0
             self.mtime = 0
-        if self.model == 1:
+        elif self.mode == 1:
             napr = self.targeting(target)
-        else:
+        elif self.mode == 0:
             if self.randompoint == None:
                 self.randompoint = (
                     random.randint(1, len(self.board.board) - 1), random.randint(1, len(self.board.board[0]) - 1), None)
@@ -297,7 +350,7 @@ class AbstractGhost(AbstractMob):  # призраки
             if abs(self.about()[0] - self.randompoint[0]) <= 1 and abs(
                     self.about()[1] - self.randompoint[1]) <= 1:
                 self.randompoint = None
-                self.model = 1
+                self.mode = 1
                 self.mtime = 0
                 self.timechangemodel = random.randint(10000, 50000)
                 napr = self.targeting(target)
@@ -306,37 +359,70 @@ class AbstractGhost(AbstractMob):  # призраки
 
         self.mtime += time
         super().update(time, napr)
+        if pygame.sprite.spritecollideany(self, self.pacman):
+            if self.mode in (0, 1):
+                pacman_died()
+            if self.mode == 3:
+                self.mode = 4
+                self.image = load_image(
+                    "Original_PacMan.png", -1)  # картинка как заглушка
+                self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+
+    def run(self):
+        if self.mode in (1, 0):
+            self.mode = 3
+
+    def findrunpoint(self, target):
+        bcopy = [['#' if self.board.board[i][j] == 1 else ' ' for j in range(len(self.board.board[i]))] for i in
+                 range(len(self.board.board))]
+        try:
+            bcopy[target[1]][target[0]] = 0
+        except IndexError:
+            return None
+
+        maxx = 0
+        maxy = 0
+        for i in range(1, 50):
+            for n in range(1, len(self.board.board) - 1):
+                for f in range(1, len(self.board.board[n]) - 1):
+                    if (i - 1 in (bcopy[n - 1][f], bcopy[n][f - 1], bcopy[n + 1][f], bcopy[n][f + 1]) and
+                            bcopy[n][f] == ' '):
+                        bcopy[n][f] = i
+                        maxi = i
+                        maxx = f
+                        maxy = n
+        return maxx, maxy
 
 
 class Ghost1(AbstractGhost):
-    def __init__(self, screen, *group, coords):
-        super().__init__(screen, *group, coords=coords)
+    def __init__(self, screen, *group, coords, pacman):
+        super().__init__(screen, *group, coords=coords, pacman=pacman)
         self.update_coords()
-        self.speed *= 1
+        self.speed *= 0.9
         self.respawntime = 1000
 
 
 class Ghost2(AbstractGhost):
-    def __init__(self, screen, *group, coords):
-        super().__init__(screen, *group, coords=coords)
+    def __init__(self, screen, *group, coords, pacman):
+        super().__init__(screen, *group, coords=coords, pacman=pacman)
         self.update_coords()
-        self.speed *= 0.9
+        self.speed *= 0.8
         self.respawntime = 8000
 
 
 class Ghost3(AbstractGhost):
-    def __init__(self, screen, *group, coords):
-        super().__init__(screen, *group, coords=coords)
+    def __init__(self, screen, *group, coords, pacman):
+        super().__init__(screen, *group, coords=coords, pacman=pacman)
         self.update_coords()
-        self.speed *= 0.8
+        self.speed *= 0.7
         self.respawntime = 25000
 
 
 class Ghost4(AbstractGhost):
-    def __init__(self, screen, *group, coords):
-        super().__init__(screen, *group, coords=coords)
+    def __init__(self, screen, *group, coords, pacman):
+        super().__init__(screen, *group, coords=coords, pacman=pacman)
         self.update_coords()
-        self.speed *= 1.1
+        self.speed *= 1
         self.respawntime = 40000
 
 
