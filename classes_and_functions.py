@@ -46,7 +46,7 @@ class Board:
         self.width = width
         self.height = height
         self.board = [[0] * width for _ in range(
-            height)]  # 0 - пустота 1 - стена 2 - проход призраков 3 - не отображается, место без предметов
+            height)]  # 0 - пустота 1 - стена 2 - проход призраков 3 - не отображается, место без предметов 4 - туннель
         self.itemboard = [[0] * width for _ in range(height)]  # 1 - точка 2 - фрукт 3 - большая точка
         self.left = 10
         self.top = 10
@@ -70,9 +70,20 @@ class Board:
                  range(len(self.board))]
         bcopy[y][x] = '*'
         for i in range(1, 50):
-            for n in range(1, len(self.board) - 1):
-                for f in range(1, len(self.board[n]) - 1):
-                    if ('*' in (bcopy[n - 1][f], bcopy[n][f - 1], bcopy[n + 1][f], bcopy[n][f + 1]) and
+            for n in range(len(self.board)):
+                for f in range(len(self.board[n])):
+                    t = []
+
+                    if n != 0:
+                        t.append(bcopy[n - 1][f])
+                    if n != len(self.board) - 1:
+                        t.append(bcopy[n + 1][f])
+                    if f != 0:
+                        t.append(bcopy[n][f - 1])
+                    if f != len(self.board[n]) - 1:
+                        t.append(bcopy[n][f + 1])
+
+                    if ('*' in t and
                             bcopy[n][f] == ' '):
                         bcopy[n][f] = '*'
                         self.itemboard[n][f] = 1
@@ -105,8 +116,8 @@ class Board:
                     pygame.draw.rect(screen, 'blue', kv, 0)
                 elif self.board[j][i] == 2:
                     kv = pygame.Rect(self.left + self.cell_size * i + 1, self.top + self.cell_size * j + 1,
-                                     self.cell_size - 2,
-                                     self.cell_size - 2)
+                                     self.cell_size,
+                                     self.cell_size // 4)
                     pygame.draw.rect(screen, 'red', kv, 0)
 
     def renderitems(self, screen):
@@ -170,6 +181,21 @@ class Board:
         y = (pos[1] - self.top) // self.cell_size
         return (int(x), int(y), self.board[int(y)][int(x)]) if (
                 x >= 0 and x < self.width and y >= 0 and y < self.height) else None
+
+    def get_cell2(self, pos):  # то же что get_cell, но на торе
+        if self.get_cell(pos) != None:
+            return self.get_cell(pos)
+        x = (pos[0] - self.left) // self.cell_size
+        y = (pos[1] - self.top) // self.cell_size
+        if x == -1:
+            x = self.width - 1
+        elif x == self.width:
+            x = 0
+        elif y == -1:
+            y = self.height - 1
+        elif y == self.height:
+            y = 0
+        return (x, y, self.board[int(y)][int(x)])
 
     def take_events(self):
         a = self.events[:]
@@ -325,6 +351,7 @@ class AbstractGhost(AbstractMob):  # призраки
                 self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
                 self.runtime = 0
                 self.mode = 1
+                self.stabilize()
         elif self.mode == 4:
             napr = self.targeting(self.spawnpoint)
             if self.about()[:-1] == self.spawnpoint[:-1]:
@@ -359,24 +386,36 @@ class AbstractGhost(AbstractMob):  # призраки
 
         self.mtime += time
         super().update(time, napr)
+
         if pygame.sprite.spritecollideany(self, self.pacman):
             if self.mode in (0, 1):
                 pacman_died()
             if self.mode == 3:
                 self.mode = 4
+                self.board.score += 200
                 self.image = load_image(
                     "Original_PacMan.png", -1)  # картинка как заглушка
                 self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
 
-    def run(self):
+    def becomeblue(self):
         if self.mode in (1, 0):
             self.mode = 3
+            self.runtime = 0
+            self.mtime = 0
 
     def findrunpoint(self, target):
         bcopy = [['#' if self.board.board[i][j] == 1 else ' ' for j in range(len(self.board.board[i]))] for i in
                  range(len(self.board.board))]
         try:
-            bcopy[target[1]][target[0]] = 0
+            bcopy[target[1]][target[0]] = '#'
+            if bcopy[target[1] + 1][target[0]] == ' ':
+                bcopy[target[1] + 1][target[0]] = 0
+            if bcopy[target[1] - 1][target[0]] == ' ':
+                bcopy[target[1] - 1][target[0]] = 0
+            if bcopy[target[1]][target[0] + 1] == ' ':
+                bcopy[target[1]][target[0] + 1] = 0
+            if bcopy[target[1]][target[0] - 1] == ' ':
+                bcopy[target[1]][target[0] - 1] = 0
         except IndexError:
             return None
 
@@ -388,7 +427,6 @@ class AbstractGhost(AbstractMob):  # призраки
                     if (i - 1 in (bcopy[n - 1][f], bcopy[n][f - 1], bcopy[n + 1][f], bcopy[n][f + 1]) and
                             bcopy[n][f] == ' '):
                         bcopy[n][f] = i
-                        maxi = i
                         maxx = f
                         maxy = n
         return maxx, maxy
@@ -439,23 +477,31 @@ class Pacman(AbstractMob):  # пакман
         if tick == 0:
             pass
         elif self.napr == 'r' and not \
-                self.board.get_cell(
+                self.board.get_cell2(
                     (self.rect.x + self.rect.width + self.speed // tick, self.rect.y + self.rect.height // 2))[2]:
             self.x += self.speed / tick
 
+            if self.board.get_cell(
+                    (self.rect.x + self.rect.width + self.speed // tick, self.rect.y + self.rect.height // 2)) is None:
+                self.x = self.board.left + self.board.cell_size // 2
+
         elif self.napr == 'l' and not \
-                self.board.get_cell(
+                self.board.get_cell2(
                     (self.rect.x - self.speed // tick, self.rect.y + self.rect.height // 2))[2]:
             self.x -= self.speed / tick
 
+            if self.board.get_cell(
+                    (self.rect.x - self.speed // tick, self.rect.y + self.rect.height // 2)) is None:
+                self.x = self.board.left + self.board.cell_size * self.board.width - self.board.cell_size
+
         elif self.napr == 'u' and not \
-                self.board.get_cell(
+                self.board.get_cell2(
                     (self.rect.x + self.rect.width // 2, self.rect.y - self.speed // tick))[2]:
             self.y -= self.speed / tick
 
-        elif self.napr == 'd' and not \
-                self.board.get_cell(
-                    (self.rect.x + self.rect.width // 2, self.rect.y + self.rect.height + self.speed // tick))[2]:
+        elif (self.napr == 'd' and not
+        self.board.get_cell2(
+            (self.rect.x + self.rect.width // 2, self.rect.y + self.rect.height + self.speed // tick))[2]):
             self.y += self.speed / tick
 
         self.stabilize()
