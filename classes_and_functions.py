@@ -241,22 +241,30 @@ class AbstractMob(pygame.sprite.Sprite):  # Движущиеся объекты
         if tick == 0:
             pass
         elif self.napr == 'r' and not \
-                self.board.get_cell(
+                self.board.get_cell2(
                     (self.rect.x + self.rect.width + self.speed // tick, self.rect.y + self.rect.height // 2))[2] == 1:
             self.x += self.speed / tick
 
+            if self.board.get_cell(
+                    (self.rect.x + self.rect.width + self.speed // tick, self.rect.y + self.rect.height // 2)) is None:
+                self.x = self.board.left + self.board.cell_size // 2
+
         elif self.napr == 'l' and not \
-                self.board.get_cell(
+                self.board.get_cell2(
                     (self.rect.x - self.speed // tick, self.rect.y + self.rect.height // 2))[2] == 1:
             self.x -= self.speed / tick
 
+            if self.board.get_cell(
+                    (self.rect.x - self.speed // tick, self.rect.y + self.rect.height // 2)) is None:
+                self.x = self.board.left + self.board.cell_size * self.board.width - self.board.cell_size
+
         elif self.napr == 'u' and not \
-                self.board.get_cell(
+                self.board.get_cell2(
                     (self.rect.x + self.rect.width // 2, self.rect.y - self.speed // tick))[2] == 1:
             self.y -= self.speed / tick
 
         elif self.napr == 'd' and not \
-                self.board.get_cell(
+                self.board.get_cell2(
                     (self.rect.x + self.rect.width // 2, self.rect.y + self.rect.height + self.speed // tick))[2] == 1:
             self.y += self.speed / tick
 
@@ -298,25 +306,61 @@ class AbstractGhost(AbstractMob):  # призраки
         bcopy[y][x] = '***'
 
         flag = 0
+        napr = None
         for i in range(1, 50):
-            for n in range(1, len(self.board.board) - 1):
-                for f in range(1, len(self.board.board[n]) - 1):
-                    if (i - 1 in (bcopy[n - 1][f], bcopy[n][f - 1], bcopy[n + 1][f], bcopy[n][f + 1]) and
-                            bcopy[n][f] == ' '):
+            for n in range(len(self.board.board)):
+                for f in range(len(self.board.board[n])):
+                    t = []
+
+                    if n != 0:
+                        t.append(bcopy[n - 1][f])
+                    else:
+                        t.append(bcopy[self.board.height - 1][f])
+                    if n != self.board.height - 1:
+                        t.append(bcopy[n + 1][f])
+                    else:
+                        t.append(bcopy[0][f])
+                    if f != 0:
+                        t.append(bcopy[n][f - 1])
+                    else:
+                        t.append(bcopy[n][self.board.width - 1])
+                    if f != self.board.width - 1:
+                        t.append(bcopy[n][f + 1])
+                    else:
+                        t.append(bcopy[n][0])
+
+                    if (i - 1 in t) and bcopy[n][f] == ' ':
                         bcopy[n][f] = i
                     if bcopy[n][f] == '***':
-                        if str(bcopy[n - 1][f]).isdigit():
-                            napr = 'u'
-                        elif str(bcopy[n + 1][f]).isdigit():
-                            napr = 'd'
-                        elif str(bcopy[n][f - 1]).isdigit():
-                            napr = 'l'
-                        elif str(bcopy[n][f + 1]).isdigit():
-                            napr = 'r'
-                        else:
+                        try:
+                            if str(bcopy[n - 1][f]).isdigit():
+                                napr = 'u'
+                        except Exception:
+                            if str(bcopy[self.board.height - 1][f]).isdigit():
+                                napr = 'u'
+                        try:
+                            if str(bcopy[n + 1][f]).isdigit():
+                                napr = 'd'
+                        except Exception:
+                            if str(bcopy[0][f]).isdigit():
+                                napr = 'd'
+                        try:
+                            if str(bcopy[n][f - 1]).isdigit():
+                                napr = 'l'
+                        except Exception:
+                            if str(bcopy[n][self.board.width - 1]).isdigit():
+                                napr = 'l'
+                        try:
+                            if str(bcopy[n][f + 1]).isdigit():
+                                napr = 'r'
+                        except Exception:
+                            if str(bcopy[n][0]).isdigit():
+                                napr = 'r'
+                        if napr is None:
                             continue
-                        flag = 1
-                        break
+                        else:
+                            flag = 1
+                            break
                 if flag:
                     break
             if flag:
@@ -343,7 +387,10 @@ class AbstractGhost(AbstractMob):  # призраки
                 self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
             if self.mtime < self.runtime:
                 self.mtime += time
-                runpoint = self.findrunpoint(target)
+                while 1:
+                    runpoint = self.findrunpoint(target)
+                    if runpoint is not None:
+                        break
                 napr = self.targeting((runpoint[0], runpoint[1], None))
             else:
                 self.image = load_image(

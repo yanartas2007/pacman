@@ -1,5 +1,7 @@
-from classes_and_functions import *
 from time import sleep
+
+from classes_and_functions import *
+
 pygame.init()
 size = width, height = 1000, 860
 screen = pygame.display.set_mode(size)
@@ -18,11 +20,10 @@ pm = pygame.sprite.Group()
 ghosts = pygame.sprite.Group()
 
 pacman = Pacman(board, pm, coords=(12, 18))
-# Ghost1(board, ghosts, coords=(10, 9), pacman=pm)
-# Ghost2(board, ghosts, coords=(11, 9), pacman=pm)
-# Ghost3(board, ghosts, coords=(12, 9), pacman=pm)
-# Ghost4(board, ghosts, coords=(13, 9), pacman=pm)
-
+Ghost1(board, ghosts, coords=(10, 9), pacman=pm)
+Ghost2(board, ghosts, coords=(11, 9), pacman=pm)
+Ghost3(board, ghosts, coords=(12, 9), pacman=pm)
+Ghost4(board, ghosts, coords=(13, 9), pacman=pm)
 
 clock = pygame.time.Clock()
 lifes = 3
