@@ -426,33 +426,130 @@ class AbstractGhost(AbstractMob):  # призраки
 class Ghost1(AbstractGhost):
     def __init__(self, screen, *group, coords, pacman):
         super().__init__(screen, *group, coords=coords, pacman=pacman)
+        self.image = load_image(
+            "rgr.png", -1)
+        self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
         self.update_coords()
         self.speed *= 0.9
         self.respawntime = 1000
 
+    def red_ghost_animation(self):
+        if self.napr == 'l':
+            self.image = load_image(
+                "rgl.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+        if self.napr == 'u':
+            self.image = load_image(
+                "rgu.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+        if self.napr == 'r':
+            self.image = load_image(
+                "rgr.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+        if self.napr == 'd':
+            self.image = load_image(
+                "rgd.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+    def update(self, time, target):
+        self.red_ghost_animation()
+        super().update(time, target)
 
 class Ghost2(AbstractGhost):
     def __init__(self, screen, *group, coords, pacman):
         super().__init__(screen, *group, coords=coords, pacman=pacman)
+        self.image = load_image(
+            "pgr.png", -1)
+        self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
         self.update_coords()
         self.speed *= 0.8
         self.respawntime = 8000
+
+    def pink_ghost_animation(self):
+        if self.napr == 'l':
+            self.image = load_image(
+                "pgl.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+        if self.napr == 'u':
+            self.image = load_image(
+                "pgu.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+        if self.napr == 'r':
+            self.image = load_image(
+                "pgr.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+        if self.napr == 'd':
+            self.image = load_image(
+                "pgd.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+    def update(self, time, target):
+        self.pink_ghost_animation()
+        super().update(time, target)
 
 
 class Ghost3(AbstractGhost):
     def __init__(self, screen, *group, coords, pacman):
         super().__init__(screen, *group, coords=coords, pacman=pacman)
+        self.image = load_image(
+            "pgr.png", -1)
+        self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
         self.update_coords()
         self.speed *= 0.7
         self.respawntime = 25000
 
+    def blue_ghost_animation(self):
+        if self.napr == 'l':
+            self.image = load_image(
+                "bgl.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+        if self.napr == 'u':
+            self.image = load_image(
+                "bgu.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+        if self.napr == 'r':
+            self.image = load_image(
+                "bgr.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+        if self.napr == 'd':
+            self.image = load_image(
+                "bgd.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
 
+    def update(self, time, target):
+        self.blue_ghost_animation()
+        super().update(time, target)
+
+#1   40000
 class Ghost4(AbstractGhost):
     def __init__(self, screen, *group, coords, pacman):
         super().__init__(screen, *group, coords=coords, pacman=pacman)
+        self.image = load_image(
+            "ogr.png", -1)
+        self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
         self.update_coords()
         self.speed *= 1
         self.respawntime = 40000
+
+    def orange_ghost_animation(self):
+        if self.napr == 'l':
+            self.image = load_image(
+                "ogl.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+        if self.napr == 'u':
+            self.image = load_image(
+                "ogu.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+        if self.napr == 'r':
+            self.image = load_image(
+                "ogr.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+        if self.napr == 'd':
+            self.image = load_image(
+                "ogd.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+
+    def update(self, time, target):
+        self.orange_ghost_animation()
+        super().update(time, target)
 
 
 class Pacman(AbstractMob):  # пакман
