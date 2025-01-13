@@ -7,11 +7,6 @@ import pygame
 pygame.init()
 
 
-def pacman_died():
-    print('GAME OVER')
-    sys.exit()
-
-
 def pacman_win():
     print('WIN')
     sys.exit()
@@ -40,6 +35,12 @@ def load_score(screen, score, lifes):
     text_y = 810
     screen.blit(text, (text_x, text_y))
 
+    for i in range(lifes):
+        image = load_image("Original_PacMan.png", -1)
+        image1 = pygame.transform.scale(image, (40, 40))
+        screen.blit(image1, (100 + i * 50,
+                             810))
+
 
 class Board:
     def __init__(self, width, height):
@@ -56,6 +57,10 @@ class Board:
         self.score = 0
         self.time = 0
         self.events = []
+        self.clr1 = 100
+        self.clr2 = 100
+        self.clr3 = 255
+        self.clrchange = 3
 
     def change_board(self, new_board):
         '''изменяет поле. самостоятельно находит длину и ширину. поле должно быть прямоугольным,
@@ -107,13 +112,29 @@ class Board:
         self.renderitems(screen)
 
     def renderwalls(self, screen):
+        if self.clrchange == 3:
+            self.clr3 -= 1
+            self.clr2 += 1
+            if self.clr2 == 140 or self.clr3 == 0:
+                self.clrchange = 2
+        elif self.clrchange == 2:
+            self.clr2 -= 1
+            self.clr1 += 1
+            if self.clr1 == 140 or self.clr2 == 0:
+                self.clrchange = 1
+        else:
+            self.clr1 -= 1
+            self.clr3 += 1
+            if self.clr3 == 255 or self.clr1 == 0:
+                self.clrchange = 3
+
         for i in range(self.width):
             for j in range(self.height):
                 if self.board[j][i] == 1:
                     kv = pygame.Rect(self.left + self.cell_size * i + 1, self.top + self.cell_size * j + 1,
                                      self.cell_size - 2,
                                      self.cell_size - 2)
-                    pygame.draw.rect(screen, 'blue', kv, 0)
+                    pygame.draw.rect(screen, (self.clr1, self.clr2, self.clr3), kv, 0)
                 elif self.board[j][i] == 2:
                     kv = pygame.Rect(self.left + self.cell_size * i + 1, self.top + self.cell_size * j + 1,
                                      self.cell_size,
@@ -436,7 +457,7 @@ class AbstractGhost(AbstractMob):  # призраки
 
         if pygame.sprite.spritecollideany(self, self.pacman):
             if self.mode in (0, 1):
-                pacman_died()
+                self.board.events.append('PacmanDied')
             if self.mode == 3:
                 self.mode = 4
                 self.board.score += 200

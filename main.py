@@ -27,24 +27,37 @@ Ghost4(board, ghosts, coords=(13, 9), pacman=pm)
 
 clock = pygame.time.Clock()
 lifes = 3
-
 running = True
+isfirst = True
+score = 0
 while running:
     napr = None
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
+            if event.key in (pygame.K_LEFT, pygame.K_a):
                 napr = 'l'
-            elif event.key == pygame.K_RIGHT:
+            elif event.key in (pygame.K_RIGHT, pygame.K_d):
                 napr = 'r'
-            elif event.key == pygame.K_UP:
+            elif event.key in (pygame.K_UP, pygame.K_w):
                 napr = 'u'
-            elif event.key == pygame.K_DOWN:
+            elif event.key in (pygame.K_DOWN, pygame.K_s):
                 napr = 'd'
-    screen.fill('black')
     time = clock.tick()
+    screen.fill('black')
+    if isfirst:
+        board.render(screen)
+        pm.draw(screen)
+        ghosts.draw(screen)
+        load_score(screen, score, lifes)
+        pygame.display.flip()
+        if napr is None:
+            continue
+        else:
+            isfirst = False
+            pacman.napr = napr
+            continue
 
     board.render(screen)
     score = board.score
@@ -58,12 +71,26 @@ while running:
             if i == 'BigPoint':
                 for j in ghosts:
                     j.becomeblue()
+            if i == 'PacmanDied':
+                lifes -= 1
+                board.time = 0
+                sleep(1)  # эту строчку заменить на анимацию смерти
+                if lifes == 0:
+                    sys.exit()
+                pm = pygame.sprite.Group()
+                ghosts = pygame.sprite.Group()
+                Ghost1(board, ghosts, coords=(10, 9), pacman=pm)
+                Ghost2(board, ghosts, coords=(11, 9), pacman=pm)
+                Ghost3(board, ghosts, coords=(12, 9), pacman=pm)
+                Ghost4(board, ghosts, coords=(13, 9), pacman=pm)
+                pacman = Pacman(board, pm, coords=(12, 18))
+                sleep(1)
+                isfirst = True
 
-    pm.draw(screen)
     pm.update(time, napr)
-
-    ghosts.draw(screen)
+    pm.draw(screen)
     ghosts.update(time, (pacman.about()))
-
+    ghosts.draw(screen)
     pygame.display.flip()
+
 pygame.quit()
