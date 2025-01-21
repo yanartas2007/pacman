@@ -6,17 +6,47 @@ import pygame
 
 pygame.init()
 
+ANIMATIONSPEED = 100  # чем меньше тем быстрее меняется
+FPS = 50
+pygame.init()
+size = width, height = 1000, 860
+screen = pygame.display.set_mode(size)
+clock = pygame.time.Clock()
 
-ANIMATIONSPEED = 100 # чем меньше тем быстрее меняется
+
+
+def terminate():
+    pygame.quit()
+    sys.exit()
 
 def pacman_died():
     print('GAME OVER')
     sys.exit()
 
-
 def pacman_win():
-    print('WIN')
-    sys.exit()
+    win_text = ["Количество набранных очков:"]
+    fon = pygame.transform.scale(load_image('win.png'), (width, height))
+    screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 40)
+    text_coord = 50
+    for line in win_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+    while True:
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                elif event.type == pygame.KEYDOWN or \
+                        event.type == pygame.MOUSEBUTTONDOWN:
+                    return
+            pygame.display.flip()
+            clock.tick(FPS)
 
 
 def load_image(name, colorkey=None):
@@ -562,9 +592,11 @@ class Ghost1(AbstractGhost):
             self.image = load_image(
                 "rgd.png", -1)
             self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+
     def update(self, time, target):
         self.red_ghost_animation()
         super().update(time, target)
+
 
 class Ghost2(AbstractGhost):
     def __init__(self, screen, *group, coords, pacman):
@@ -593,6 +625,7 @@ class Ghost2(AbstractGhost):
             self.image = load_image(
                 "pgd.png", -1)
             self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+
     def update(self, time, target):
         self.pink_ghost_animation()
         super().update(time, target)
@@ -602,7 +635,7 @@ class Ghost3(AbstractGhost):
     def __init__(self, screen, *group, coords, pacman):
         super().__init__(screen, *group, coords=coords, pacman=pacman)
         self.image = load_image(
-            "pgr.png", -1)
+            "bgr.png", -1)
         self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
         self.update_coords()
         self.speed *= 0.7
@@ -630,7 +663,8 @@ class Ghost3(AbstractGhost):
         self.blue_ghost_animation()
         super().update(time, target)
 
-#1   40000
+
+# 1   40000
 class Ghost4(AbstractGhost):
     def __init__(self, screen, *group, coords, pacman):
         super().__init__(screen, *group, coords=coords, pacman=pacman)
@@ -708,4 +742,3 @@ class Pacman(AbstractMob):  # пакман
         self.update_coords()
         self.board.getitem((self.x + self.rect.width // 2, self.y + self.rect.height // 2))
         self.updateanimation(time)
-
