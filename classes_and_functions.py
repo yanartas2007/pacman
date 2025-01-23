@@ -8,6 +8,7 @@ pygame.init()
 
 ANIMATIONSPEED = 100  # чем меньше тем быстрее меняется
 FPS = 50
+DEBUG = False # отладка. если заменить на True, f1 f2 f3 переключение уровней f5 + жизнь f6 проигрыш f7 выигрыш
 pygame.init()
 size = width, height = 1000, 860
 screen = pygame.display.set_mode(size)
@@ -15,16 +16,64 @@ clock = pygame.time.Clock()
 
 
 
-def terminate():
+def terminate(): # завершение
     pygame.quit()
     sys.exit()
 
-def pacman_died():
-    print('GAME OVER')
-    sys.exit()
+def draw_intro(screen):  # интро
+    intro_text = ["", "                                           <<< PACMAN >>>", "", "",
+                  "   !!! Правила игры !!!", "",
+                  "   Управляйте пакманом", "   и избегайте встречи с привидениями.", "",
+                  "   Для победы в игре соберите", "   все точки!", "", "", "", "", "   Нажмите, чтобы начать..."]
 
-def pacman_win():
-    win_text = ["Количество набранных очков:"]
+    fon = pygame.transform.scale(load_image('zastavka.jpg'), (width, height))
+    screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 40)
+    text_coord = 50
+    for line in intro_text:
+        string_rendered = font.render(line, 1, pygame.Color('black'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN or \
+                    event.type == pygame.MOUSEBUTTONDOWN:
+                return
+        pygame.display.flip()
+        clock.tick(FPS)
+def game_over(score): # вывод окна проигрыша
+    fon = pygame.transform.scale(load_image('gameover.jpg'), (width, height))
+    screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 40)
+    text_coord = 50
+    game_over_text = ["Количество набранных очков:", str(score)]
+    for line in game_over_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+    while True:
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                elif event.type == pygame.KEYDOWN or \
+                        event.type == pygame.MOUSEBUTTONDOWN:
+                    terminate()
+            pygame.display.flip()
+            clock.tick(FPS)
+
+def pacman_win(score): # вывод окна выигрыша
+    win_text = ["Количество набранных очков:", str(score)]
     fon = pygame.transform.scale(load_image('win.png'), (width, height))
     screen.blit(fon, (0, 0))
     font = pygame.font.Font(None, 40)
@@ -44,12 +93,13 @@ def pacman_win():
                     terminate()
                 elif event.type == pygame.KEYDOWN or \
                         event.type == pygame.MOUSEBUTTONDOWN:
-                    return
+                    terminate()
             pygame.display.flip()
             clock.tick(FPS)
 
 
-def load_image(name, colorkey=None):
+
+def load_image(name, colorkey=None): # загрузка изображения
     fullname = os.path.join('data', name)
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
@@ -65,7 +115,7 @@ def load_image(name, colorkey=None):
     return image
 
 
-def load_score(screen, score, lifes):
+def load_score(screen, score, lifes): # показывает очки и жизни
     font = pygame.font.Font(None, 50)
     text = font.render(f"score: {score}", True, (255, 255, 255))
     text_x = 700
@@ -79,8 +129,8 @@ def load_score(screen, score, lifes):
                              810))
 
 
-class Board:
-    def __init__(self, width, height):
+class Board: # Доска
+    def __init__(self, width, height, score=0):
         self.width = width
         self.height = height
         self.board = [[0] * width for _ in range(
@@ -91,22 +141,23 @@ class Board:
         self.cell_size = 30
         self.points = 0
         self.fruits = 0
-        self.score = 0
+        self.score = score
         self.time = 0
         self.events = []
         self.clr1 = 100
         self.clr2 = 100
         self.clr3 = 255
         self.clrchange = 3
+        self.level = 1
 
-    def change_board(self, new_board):
+    def change_board(self, new_board): # Смена доски
         '''изменяет поле. самостоятельно находит длину и ширину. поле должно быть прямоугольным,
          по краям должны быть стены,так как система туннелей отсутствует.'''
         self.board = new_board
         self.width = len(new_board[0])
         self.height = len(new_board)
 
-    def change_itemboard(self, x, y):
+    def change_itemboard(self, x, y): # расставляет точки для сбора везде, куда можно попасть
         self.itemboard = [[0] * self.width for _ in range(self.height)]
         bcopy = [['#' if self.board[i][j] != 0 else ' ' for j in range(len(self.board[i]))] for i in
                  range(len(self.board))]
@@ -131,7 +182,7 @@ class Board:
                         self.itemboard[n][f] = 1
                         self.points += 1
         bigpoints = 0
-        while bigpoints < 5:
+        while bigpoints < self.points // 20 + 1:
             randompoint = (
                 random.randint(1, len(self.board[0]) - 1), random.randint(1, len(self.board) - 1))
             if self.itemboard[randompoint[1]][randompoint[0]] == 1 and self.board[randompoint[1]][
@@ -139,16 +190,16 @@ class Board:
                 self.itemboard[randompoint[1]][randompoint[0]] = 3
                 bigpoints += 1
 
-    def set_view(self, left, top, cell_size):
+    def set_view(self, left, top, cell_size): # смена параметров отображения
         self.left = left
         self.top = top
         self.cell_size = cell_size
 
-    def render(self, screen):
+    def render(self, screen): # показывает вместе стены и предметы
         self.renderwalls(screen)
         self.renderitems(screen)
 
-    def renderwalls(self, screen):
+    def renderwalls(self, screen): # показывает стены
         if self.clrchange == 3:
             self.clr3 -= 1
             self.clr2 += 1
@@ -178,7 +229,7 @@ class Board:
                                      self.cell_size // 4)
                     pygame.draw.rect(screen, 'red', kv, 0)
 
-    def renderitems(self, screen):
+    def renderitems(self, screen): # показывает предметы
         for i in range(self.width):
             for j in range(self.height):
                 if self.itemboard[j][i] == 1:
@@ -199,7 +250,7 @@ class Board:
                                      self.cell_size // 2)
                     pygame.draw.rect(screen, 'white', kv, 0)
 
-    def getitem(self, pos):
+    def getitem(self, pos): # возвращает предмет в клетке, где пакман
         x = (pos[0] - self.left) // self.cell_size
         y = (pos[1] - self.top) // self.cell_size
         if self.itemboard[int(y)][int(x)] == 1:
@@ -216,9 +267,12 @@ class Board:
             self.score += 50
             self.events.append('BigPoint')
 
-    def update(self):
+    def update(self): # обновляет поле
         if self.points == 0:
-            pacman_win()
+            if self.level == 3:
+                pacman_win(self.score)
+            else:
+                self.next_level()
 
         if self.time >= 35000:
             if self.fruits >= 3:
@@ -234,46 +288,37 @@ class Board:
                     break
             self.time = 0
 
-    def get_cell(self, pos):
+    def get_cell(self, pos): # возвращает клетку
         x = (pos[0] - self.left) // self.cell_size
         y = (pos[1] - self.top) // self.cell_size
         return (int(x), int(y), self.board[int(y)][int(x)]) if (
                 x >= 0 and x < self.width and y >= 0 and y < self.height) else None
 
-    def get_cell2(self, pos):  # то же что get_cell, но на торе
-        if self.get_cell(pos) != None:
-            return self.get_cell(pos)
-        x = (pos[0] - self.left) // self.cell_size
-        y = (pos[1] - self.top) // self.cell_size
-        if x == -1:
-            x = self.width - 1
-        elif x == self.width:
-            x = 0
-        elif y == -1:
-            y = self.height - 1
-        elif y == self.height:
-            y = 0
-        return (x, y, self.board[int(y)][int(x)])
 
-    def take_events(self):
+    def take_events(self): # возвращает список произошедших событий
         a = self.events[:]
         self.events = []
         return a
+
+    def next_level(self): # переключает уровень на следующий
+        self.level += 1
+        self.points = 0
+        self.events.append(f'NEXTLEVEL{self.level}')
 
 
 class AbstractMob(pygame.sprite.Sprite):  # Движущиеся объекты
     def __init__(self, board, *group, coords):
         super().__init__(*group)
         self.images = []
-        self.images.append(pygame.image.load('data/r1.png'))
-        self.images.append(pygame.image.load('data/r2.png'))
-        self.images.append(pygame.image.load('data/r3.png'))
-        self.images.append(pygame.image.load('data/r4.png'))
-        self.images.append(pygame.image.load('data/r5.png'))
-        self.images.append(pygame.image.load('data/r6.png'))
+        self.board = board
+        self.images.append(pygame.transform.scale(pygame.image.load('data/r1.png'), (self.board.cell_size, self.board.cell_size)))
+        self.images.append(pygame.transform.scale(pygame.image.load('data/r2.png'), (self.board.cell_size, self.board.cell_size)))
+        self.images.append(pygame.transform.scale(pygame.image.load('data/r3.png'), (self.board.cell_size, self.board.cell_size)))
+        self.images.append(pygame.transform.scale(pygame.image.load('data/r4.png'), (self.board.cell_size, self.board.cell_size)))
+        self.images.append(pygame.transform.scale(pygame.image.load('data/r5.png'), (self.board.cell_size, self.board.cell_size)))
+        self.images.append(pygame.transform.scale(pygame.image.load('data/r6.png'), (self.board.cell_size, self.board.cell_size)))
         self.index = 0
         self.image = self.images[self.index]
-        self.board = board
         self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
         self.rect = self.image.get_rect()
         self.x = self.rect.x  # координаты объекта могут выражаться как нецелое число, но его текстура всегда на целых координатах
@@ -315,7 +360,7 @@ class AbstractMob(pygame.sprite.Sprite):  # Движущиеся объекты
             self.x = self.board.get_cell((self.rect.x + self.rect.width // 2, self.rect.y + self.rect.height // 2))[
                          0] * self.board.cell_size + self.board.left
 
-    def update_coords(self):
+    def update_coords(self): # перемещает картинку в место реального нахождения
         self.rect.x = int(self.x)
         self.rect.y = int(self.y)
 
@@ -326,37 +371,31 @@ class AbstractMob(pygame.sprite.Sprite):  # Движущиеся объекты
         if tick == 0:
             pass
         elif self.napr == 'r' and not \
-                self.board.get_cell2(
+                self.board.get_cell(
                     (self.rect.x + self.rect.width + self.speed // tick, self.rect.y + self.rect.height // 2))[2] == 1:
             self.x += self.speed / tick
 
-            if self.board.get_cell(
-                    (self.rect.x + self.rect.width + self.speed // tick, self.rect.y + self.rect.height // 2)) is None:
-                self.x = self.board.left + self.board.cell_size // 2
 
         elif self.napr == 'l' and not \
-                self.board.get_cell2(
+                self.board.get_cell(
                     (self.rect.x - self.speed // tick, self.rect.y + self.rect.height // 2))[2] == 1:
             self.x -= self.speed / tick
 
-            if self.board.get_cell(
-                    (self.rect.x - self.speed // tick, self.rect.y + self.rect.height // 2)) is None:
-                self.x = self.board.left + self.board.cell_size * self.board.width - self.board.cell_size
 
         elif self.napr == 'u' and not \
-                self.board.get_cell2(
+                self.board.get_cell(
                     (self.rect.x + self.rect.width // 2, self.rect.y - self.speed // tick))[2] == 1:
             self.y -= self.speed / tick
 
         elif self.napr == 'd' and not \
-                self.board.get_cell2(
+                self.board.get_cell(
                     (self.rect.x + self.rect.width // 2, self.rect.y + self.rect.height + self.speed // tick))[2] == 1:
             self.y += self.speed / tick
 
         self.stabilize()
         self.update_coords()
 
-    def about(self):
+    def about(self): # возвращает позицию и направление
         return (*self.board.get_cell((self.x + self.rect.width // 2, self.y + self.rect.height // 2))[:-1], self.napr)
 
 
@@ -378,7 +417,7 @@ class AbstractGhost(AbstractMob):  # призраки
         self.pacman = pacman
         self.spawnpoint = (self.about()[0], self.about()[1], None)
 
-    def targeting(self, target=(1, 1, 'r')):  # поиск пути
+    def targeting(self, target=(1, 1, 'r')):  # поиск пути, основан на волновом алгоритме
         x, y = self.board.get_cell((self.x + self.rect.width // 2, self.y + self.rect.height // 2))[:-1]
         x, y = int(x), int(y)
 
@@ -454,7 +493,7 @@ class AbstractGhost(AbstractMob):  # призраки
             return None
         return napr
 
-    def update(self, time, target=(1, 1, 'r')):  # вместо направления получает цель и сам преобразует в направление
+    def update(self, time, target=(1, 1, 'r')):
         napr = None
         if self.mode == 2:
             if self.mtime < self.respawntime:
@@ -529,13 +568,13 @@ class AbstractGhost(AbstractMob):  # призраки
                     "Original_PacMan.png", -1)  # картинка как заглушка
                 self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
 
-    def becomeblue(self):
+    def becomeblue(self): # когда пакман съедает таблетку
         if self.mode in (1, 0):
             self.mode = 3
             self.runtime = 0
             self.mtime = 0
 
-    def findrunpoint(self, target):
+    def findrunpoint(self, target): # находит точку, что бы убежать от пакмана
         bcopy = [['#' if self.board.board[i][j] == 1 else ' ' for j in range(len(self.board.board[i]))] for i in
                  range(len(self.board.board))]
         try:
@@ -711,30 +750,26 @@ class Pacman(AbstractMob):  # пакман
         if tick == 0:
             pass
         elif self.napr == 'r' and not \
-                self.board.get_cell2(
+                self.board.get_cell(
                     (self.rect.x + self.rect.width + self.speed // tick, self.rect.y + self.rect.height // 2))[2]:
             self.x += self.speed / tick
 
-            if self.board.get_cell(
-                    (self.rect.x + self.rect.width + self.speed // tick, self.rect.y + self.rect.height // 2)) is None:
-                self.x = self.board.left + self.board.cell_size // 2
+
 
         elif self.napr == 'l' and not \
-                self.board.get_cell2(
+                self.board.get_cell(
                     (self.rect.x - self.speed // tick, self.rect.y + self.rect.height // 2))[2]:
             self.x -= self.speed / tick
 
-            if self.board.get_cell(
-                    (self.rect.x - self.speed // tick, self.rect.y + self.rect.height // 2)) is None:
-                self.x = self.board.left + self.board.cell_size * self.board.width - self.board.cell_size
+
 
         elif self.napr == 'u' and not \
-                self.board.get_cell2(
+                self.board.get_cell(
                     (self.rect.x + self.rect.width // 2, self.rect.y - self.speed // tick))[2]:
             self.y -= self.speed / tick
 
         elif (self.napr == 'd' and not
-        self.board.get_cell2(
+        self.board.get_cell(
             (self.rect.x + self.rect.width // 2, self.rect.y + self.rect.height + self.speed // tick))[2]):
             self.y += self.speed / tick
 
