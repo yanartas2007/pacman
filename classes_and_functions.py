@@ -603,6 +603,41 @@ class AbstractGhost(AbstractMob):  # призраки
                         maxy = n
         return maxx, maxy
 
+    def ghost_run_animation(self): # ЗДЕСЬ НУЖНО ЗАМЕНИТЬ НАЗВАНИЯ КАРТИНОК НА СИНИЕ
+        if self.napr == 'l':
+            self.image = load_image(
+                "fruit.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+        if self.napr == 'u':
+            self.image = load_image(
+                "fruit.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+        if self.napr == 'r':
+            self.image = load_image(
+                "fruit.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+        if self.napr == 'd':
+            self.image = load_image(
+                "fruit.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+
+    def ghost_eyes_animation(self): # ЗДЕСЬ НУЖНО ЗАМЕНИТЬ НАЗВАНИЯ КАРТИНОК НА ГЛАЗА(БЕЛЫЕ)
+        if self.napr == 'l':
+            self.image = load_image(
+                "Original_PacMan.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+        if self.napr == 'u':
+            self.image = load_image(
+                "Original_PacMan.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+        if self.napr == 'r':
+            self.image = load_image(
+                "Original_PacMan.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
+        if self.napr == 'd':
+            self.image = load_image(
+                "Original_PacMan.png", -1)
+            self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
 
 class Ghost1(AbstractGhost):
     def __init__(self, screen, *group, coords, pacman):
@@ -633,7 +668,12 @@ class Ghost1(AbstractGhost):
             self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
 
     def update(self, time, target):
-        self.red_ghost_animation()
+        if self.mode == 3:
+            self.ghost_run_animation()
+        elif self.mode == 4:
+            self.ghost_eyes_animation()
+        else:
+            self.red_ghost_animation()
         super().update(time, target)
 
 
@@ -666,7 +706,12 @@ class Ghost2(AbstractGhost):
             self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
 
     def update(self, time, target):
-        self.pink_ghost_animation()
+        if self.mode == 3:
+            self.ghost_run_animation()
+        elif self.mode == 4:
+            self.ghost_eyes_animation()
+        else:
+            self.pink_ghost_animation()
         super().update(time, target)
 
 
@@ -699,11 +744,15 @@ class Ghost3(AbstractGhost):
             self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
 
     def update(self, time, target):
-        self.blue_ghost_animation()
+        if self.mode == 3:
+            self.ghost_run_animation()
+        elif self.mode == 4:
+            self.ghost_eyes_animation()
+        else:
+            self.blue_ghost_animation()
         super().update(time, target)
 
 
-# 1   40000
 class Ghost4(AbstractGhost):
     def __init__(self, screen, *group, coords, pacman):
         super().__init__(screen, *group, coords=coords, pacman=pacman)
@@ -733,7 +782,12 @@ class Ghost4(AbstractGhost):
             self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
 
     def update(self, time, target):
-        self.orange_ghost_animation()
+        if self.mode == 3:
+            self.ghost_run_animation()
+        elif self.mode == 4:
+            self.ghost_eyes_animation()
+        else:
+            self.orange_ghost_animation()
         super().update(time, target)
 
 
