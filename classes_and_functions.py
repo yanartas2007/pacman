@@ -20,7 +20,12 @@ def terminate(): # завершение
     pygame.quit()
     sys.exit()
 
-def draw_intro(screen):  # интро
+def draw_intro(screen):
+    file = 'intro.mp3'
+    pygame.mixer.init()
+    pygame.mixer.music.load(file)
+    pygame.mixer.music.play()
+    # интро
     intro_text = ["", "                                           <<< PACMAN >>>", "", "",
                   "   !!! Правила игры !!!", "",
                   "   Управляйте пакманом", "   и избегайте встречи с привидениями.", "",
@@ -47,7 +52,8 @@ def draw_intro(screen):  # интро
                 return
         pygame.display.flip()
         clock.tick(FPS)
-def game_over(score): # вывод окна проигрыша
+def game_over(score):
+    # вывод окна проигрыша
     fon = pygame.transform.scale(load_image('gameover.jpg'), (width, height))
     screen.blit(fon, (0, 0))
     font = pygame.font.Font(None, 40)
@@ -606,37 +612,37 @@ class AbstractGhost(AbstractMob):  # призраки
     def ghost_run_animation(self): # ЗДЕСЬ НУЖНО ЗАМЕНИТЬ НАЗВАНИЯ КАРТИНОК НА СИНИЕ
         if self.napr == 'l':
             self.image = load_image(
-                "fruit.png", -1)
+                "ldg.png", -1)
             self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
         if self.napr == 'u':
             self.image = load_image(
-                "fruit.png", -1)
+                "udg.png", -1)
             self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
         if self.napr == 'r':
             self.image = load_image(
-                "fruit.png", -1)
+                "rdg.png", -1)
             self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
         if self.napr == 'd':
             self.image = load_image(
-                "fruit.png", -1)
+                "ddg.png", -1)
             self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
 
     def ghost_eyes_animation(self): # ЗДЕСЬ НУЖНО ЗАМЕНИТЬ НАЗВАНИЯ КАРТИНОК НА ГЛАЗА(БЕЛЫЕ)
         if self.napr == 'l':
             self.image = load_image(
-                "Original_PacMan.png", -1)
+                "wgl.png", -1)
             self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
         if self.napr == 'u':
             self.image = load_image(
-                "Original_PacMan.png", -1)
+                "wgu.png", -1)
             self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
         if self.napr == 'r':
             self.image = load_image(
-                "Original_PacMan.png", -1)
+                "wgr.png", -1)
             self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
         if self.napr == 'd':
             self.image = load_image(
-                "Original_PacMan.png", -1)
+                "wgd.png", -1)
             self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
 
 class Ghost1(AbstractGhost):

@@ -8,6 +8,7 @@ screen = pygame.display.set_mode(size)
 FPS = 50
 clock = pygame.time.Clock()
 
+
 draw_intro(screen)
 
 board = Board(10, 8)
