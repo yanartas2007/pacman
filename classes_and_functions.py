@@ -3,12 +3,13 @@ import random
 import sys
 
 import pygame
+from time import sleep
 
 pygame.init()
 pygame.mixer.init()
 ANIMATIONSPEED = 100  # чем меньше тем быстрее меняется
 FPS = 50
-DEBUG = False  # отладка. если заменить на True, f1 f2 f3 переключение уровней f5 + жизнь f6 проигрыш f7 выигрыш
+DEBUG = True  # отладка. если заменить на True, f1 f2 f3 переключение уровней f5 + жизнь f6 проигрыш f7 выигрыш
 pygame.init()
 size = width, height = 1000, 860
 screen = pygame.display.set_mode(size)
@@ -61,10 +62,31 @@ def draw_intro(screen):
         pygame.display.flip()
         clock.tick(FPS)
 
+def close_intro(screen, board, ghosts, pm):
+    for i in range(100):
+        sleep(0.002)
+        screen.fill('black')
+        board.render(screen)
+        ghosts.draw(screen)
+        pm.draw(screen)
+        fon = pygame.transform.scale(load_image('zastavka.jpg'), (width // 100 * (100 - i), height // 100 * (100 - i)))
+        screen.blit(fon, (width // 200 * i, height // 200 * i))
+        pygame.display.flip()
+
+def open_gameover(screen, board, ghosts, pm):
+    playmusic('gameover.mp3')
+    for i in range(100):
+        sleep(0.002)
+        screen.fill('black')
+        board.render(screen)
+        ghosts.draw(screen)
+        pm.draw(screen)
+        fon = pygame.transform.scale(load_image('gameover.jpg'), (width - width // 100 * (100 - i), height - height // 100 * (100 - i)))
+        screen.blit(fon, (width // 2 - width // 200 * i, height // 2 - height // 200 * i))
+        pygame.display.flip()
 
 def game_over(score):
     # вывод окна проигрыша
-    playmusic('gameover.mp3')
     fon = pygame.transform.scale(load_image('gameover.jpg'), (width, height))
     screen.blit(fon, (0, 0))
     font = pygame.font.Font(None, 40)
@@ -91,7 +113,6 @@ def game_over(score):
 
 
 def pacman_win(score):  # вывод окна выигрыша
-    playmusic('win.mp3')
     win_text = ["Количество набранных очков:", str(score)]
     fon = pygame.transform.scale(load_image('win.png'), (width, height))
     screen.blit(fon, (0, 0))
@@ -115,6 +136,18 @@ def pacman_win(score):  # вывод окна выигрыша
                     terminate()
             pygame.display.flip()
             clock.tick(FPS)
+
+def open_win(screen, board, ghosts, pm):
+    playmusic('win.mp3')
+    for i in range(100):
+        sleep(0.002)
+        screen.fill('black')
+        board.render(screen)
+        ghosts.draw(screen)
+        pm.draw(screen)
+        fon = pygame.transform.scale(load_image('win.png'), (width - width // 100 * (100 - i), height - height // 100 * (100 - i)))
+        screen.blit(fon, (width // 2 - width // 200 * i, height // 2 - height // 200 * i))
+        pygame.display.flip()
 
 
 def load_image(name, colorkey=None):  # загрузка изображения
@@ -288,7 +321,7 @@ class Board:  # Доска
     def update(self):  # обновляет поле
         if self.points == 0:
             if self.level == 3:
-                pacman_win(self.score)
+                self.events.append('WIN')
             else:
                 self.next_level()
 

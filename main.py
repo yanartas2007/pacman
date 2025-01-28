@@ -26,6 +26,9 @@ ghosts = pygame.sprite.Group()
 pacman = Pacman(board, pm, coords=(1, 1))
 Ghost1(board, ghosts, coords=(8, 6), pacman=pm)
 
+close_intro(screen, board, ghosts, pm)
+
+
 lifes = 3
 running = True
 isfirst = True
@@ -60,8 +63,10 @@ while running:
                 lifes += 1
             elif event.key == pygame.K_F6 and DEBUG:
                 lifes = 1
+                open_gameover(screen, board, ghosts, pm)
                 game_over(board.score)
             elif event.key == pygame.K_F7 and DEBUG:
+                open_win(screen, board, ghosts, pm)
                 pacman_win(board.score)
             elif event.key == pygame.K_F8 and DEBUG:
                 ghosts = pygame.sprite.Group()
@@ -96,6 +101,7 @@ while running:
                 playmusic('gameover.mp3')
                 lifes -= 1
                 if lifes == 0:
+                    open_gameover(screen, board, ghosts, pm)
                     game_over(board.score)
                 elif board.level == 3:
                     board.time = 0
@@ -210,6 +216,9 @@ while running:
                 pacman = Pacman(board, pm, coords=(1, 1))
                 Ghost1(board, ghosts, coords=(8, 6), pacman=pm)
                 isfirst = True
+            if i == 'WIN':
+                open_win(screen, board, ghosts, pm)
+                pacman_win(score)
 
     pm.update(time, napr)
     pm.draw(screen)
