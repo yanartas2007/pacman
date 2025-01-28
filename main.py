@@ -8,7 +8,6 @@ screen = pygame.display.set_mode(size)
 FPS = 50
 clock = pygame.time.Clock()
 
-
 draw_intro(screen)
 
 board = Board(10, 8)
@@ -94,12 +93,24 @@ while running:
                 for j in ghosts:
                     j.becomeblue()
             if i == 'PacmanDied':  # пакман умер
+                playmusic('gameover.mp3')
                 lifes -= 1
                 if lifes == 0:
                     game_over(board.score)
                 elif board.level == 3:
                     board.time = 0
-                    sleep(1)  # эту строчку заменить на анимацию смерти
+                    for i in PACMANDEATHTEXTURESLIST:
+                        sleep(0.4)
+                        screen.fill('black')
+                        board.render(screen)
+                        pacman.image = load_image(
+                            i, -1)
+                        pacman.image = pygame.transform.scale(pacman.image,
+                                                              (pacman.board.cell_size, pacman.board.cell_size))
+                        pm.draw(screen)
+                        ghosts.draw(screen)
+                        pygame.display.flip()
+                    sleep(0.6)
                     pm = pygame.sprite.Group()
                     ghosts = pygame.sprite.Group()
                     Ghost1(board, ghosts, coords=(10, 9), pacman=pm)
@@ -107,29 +118,52 @@ while running:
                     Ghost3(board, ghosts, coords=(12, 9), pacman=pm)
                     Ghost4(board, ghosts, coords=(13, 9), pacman=pm)
                     pacman = Pacman(board, pm, coords=(12, 18))
-                    sleep(1)
+                    sleep(0.6)
                     isfirst = True
                 elif board.level == 2:
                     board.time = 0
-                    sleep(1)  # эту строчку заменить на анимацию смерти
+                    for i in PACMANDEATHTEXTURESLIST:
+                        sleep(0.4)
+                        screen.fill('black')
+                        board.render(screen)
+                        pacman.image = load_image(
+                            i, -1)
+                        pacman.image = pygame.transform.scale(pacman.image,
+                                                              (pacman.board.cell_size, pacman.board.cell_size))
+                        pm.draw(screen)
+                        ghosts.draw(screen)
+                        pygame.display.flip()
+                    sleep(0.6)
                     pm = pygame.sprite.Group()
                     ghosts = pygame.sprite.Group()
                     Ghost4(board, ghosts, coords=(3, 3), pacman=pm)
                     Ghost2(board, ghosts, coords=(4, 3), pacman=pm)
                     Ghost3(board, ghosts, coords=(5, 3), pacman=pm)
                     pacman = Pacman(board, pm, coords=(5, 10))
-                    sleep(1)
+                    sleep(0.6)
                     isfirst = True
                 elif board.level == 1:
                     board.time = 0
-                    sleep(1)  # эту строчку заменить на анимацию смерти
+                    for i in PACMANDEATHTEXTURESLIST:
+                        sleep(0.4)
+                        screen.fill('black')
+                        board.render(screen)
+                        pacman.image = load_image(
+                            i, -1)
+                        pacman.image = pygame.transform.scale(pacman.image,
+                                                              (pacman.board.cell_size, pacman.board.cell_size))
+                        pm.draw(screen)
+                        ghosts.draw(screen)
+                        pygame.display.flip()
+                    sleep(0.6)
                     pm = pygame.sprite.Group()
                     ghosts = pygame.sprite.Group()
                     pacman = Pacman(board, pm, coords=(1, 1))
                     Ghost1(board, ghosts, coords=(8, 6), pacman=pm)
-                    sleep(1)
+                    sleep(0.6)
                     isfirst = True
             if i == 'NEXTLEVEL2':  # переход н 2 уровень
+                playmusic('win.mp3')
                 board = Board(10, 8, board.score)
                 board.set_view(0, 0, 67)
                 with open('data/level_2') as f:
@@ -144,6 +178,7 @@ while running:
                 pacman = Pacman(board, pm, coords=(5, 10))
                 isfirst = True
             if i == 'NEXTLEVEL3':  # переход на 3 уровень
+                playmusic('win.mp3')
                 board = Board(10, 8, board.score)
                 board.set_view(0, 0, 40)
                 with open('data/level_3') as f:
@@ -159,6 +194,7 @@ while running:
                 pacman = Pacman(board, pm, coords=(12, 18))
                 isfirst = True
             if i == 'NEXTLEVEL1':  # переход на 1 уровень (только для отладки)
+                playmusic('win.mp3')
                 board = Board(10, 8, board.score)
                 board.set_view(0, 0, 100)
 
