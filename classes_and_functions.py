@@ -7,7 +7,7 @@ from time import sleep
 
 pygame.init()
 pygame.mixer.init()
-ANIMATIONSPEED = 100  # чем меньше тем быстрее меняется
+ANIMATIONSPEED = 80  # чем меньше тем быстрее меняется
 FPS = 50
 DEBUG = True  # отладка. если заменить на True, f1 f2 f3 переключение уровней f5 + жизнь f6 проигрыш f7 выигрыш
 pygame.init()
@@ -15,7 +15,8 @@ size = width, height = 1000, 860
 screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
 
-PACMANDEATHTEXTURESLIST = ['ldg.png', 'zastavka.jpg', 'rgr.png', 'ogu.png', 'gameover.jpg']
+PACMANDEATHTEXTURESLIST = ['death1.png', 'death2.png', 'death3.png', 'death4.png', 'death5.png', 'death6.png', 'death7.png', 'death8.png',
+                           'death9.png', 'death10.png']
 
 
 def terminate():  # завершение
@@ -33,7 +34,7 @@ def playmusic(file):
 
 
 def draw_intro(screen):
-    playmusic('intro.mp3')
+    playmusic('data/intro.mp3')
     # интро
     intro_text = ["", "                                           <<< PACMAN >>>", "", "",
                   "   !!! Правила игры !!!", "",
@@ -74,7 +75,7 @@ def close_intro(screen, board, ghosts, pm):
         pygame.display.flip()
 
 def open_gameover(screen, board, ghosts, pm):
-    playmusic('gameover.mp3')
+    playmusic('data/gameover.mp3')
     for i in range(100):
         sleep(0.002)
         screen.fill('black')
@@ -138,7 +139,7 @@ def pacman_win(score):  # вывод окна выигрыша
             clock.tick(FPS)
 
 def open_win(screen, board, ghosts, pm):
-    playmusic('win.mp3')
+    playmusic('data/win.mp3')
     for i in range(100):
         sleep(0.002)
         screen.fill('black')

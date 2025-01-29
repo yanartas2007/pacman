@@ -98,7 +98,7 @@ while running:
                 for j in ghosts:
                     j.becomeblue()
             if i == 'PacmanDied':  # пакман умер
-                playmusic('gameover.mp3')
+                playmusic('data/gameover.mp3')
                 lifes -= 1
                 if lifes == 0:
                     open_gameover(screen, board, ghosts, pm)
@@ -169,7 +169,7 @@ while running:
                     sleep(0.6)
                     isfirst = True
             if i == 'NEXTLEVEL2':  # переход н 2 уровень
-                playmusic('win.mp3')
+                playmusic('data/win.mp3')
                 board = Board(10, 8, board.score)
                 board.set_view(0, 0, 67)
                 with open('data/level_2') as f:
@@ -184,7 +184,7 @@ while running:
                 pacman = Pacman(board, pm, coords=(5, 10))
                 isfirst = True
             if i == 'NEXTLEVEL3':  # переход на 3 уровень
-                playmusic('win.mp3')
+                playmusic('data/win.mp3')
                 board = Board(10, 8, board.score)
                 board.set_view(0, 0, 40)
                 with open('data/level_3') as f:
@@ -200,7 +200,7 @@ while running:
                 pacman = Pacman(board, pm, coords=(12, 18))
                 isfirst = True
             if i == 'NEXTLEVEL1':  # переход на 1 уровень (только для отладки)
-                playmusic('win.mp3')
+                playmusic('data/win.mp3')
                 board = Board(10, 8, board.score)
                 board.set_view(0, 0, 100)
 
