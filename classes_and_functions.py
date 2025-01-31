@@ -1,21 +1,22 @@
 import os
 import random
 import sys
+from time import sleep
 
 import pygame
-from time import sleep
 
 pygame.init()
 pygame.mixer.init()
 ANIMATIONSPEED = 80  # чем меньше тем быстрее меняется
 FPS = 50
-DEBUG = True  # отладка. если заменить на True, f1 f2 f3 переключение уровней f5 + жизнь f6 проигрыш f7 выигрыш
+DEBUG = False  # отладка. если заменить на True, f1 f2 f3 переключение уровней f5 + жизнь f6 проигрыш f7 выигрыш
 pygame.init()
 size = width, height = 1000, 860
 screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
 
-PACMANDEATHTEXTURESLIST = ['death1.png', 'death2.png', 'death3.png', 'death4.png', 'death5.png', 'death6.png', 'death7.png', 'death8.png',
+PACMANDEATHTEXTURESLIST = ['death1.png', 'death2.png', 'death3.png', 'death4.png', 'death5.png', 'death6.png',
+                           'death7.png', 'death8.png',
                            'death9.png', 'death10.png']
 
 
@@ -63,6 +64,7 @@ def draw_intro(screen):
         pygame.display.flip()
         clock.tick(FPS)
 
+
 def close_intro(screen, board, ghosts, pm):
     for i in range(100):
         sleep(0.002)
@@ -74,6 +76,7 @@ def close_intro(screen, board, ghosts, pm):
         screen.blit(fon, (width // 200 * i, height // 200 * i))
         pygame.display.flip()
 
+
 def open_gameover(screen, board, ghosts, pm):
     playmusic('data/gameover.mp3')
     for i in range(100):
@@ -82,9 +85,11 @@ def open_gameover(screen, board, ghosts, pm):
         board.render(screen)
         ghosts.draw(screen)
         pm.draw(screen)
-        fon = pygame.transform.scale(load_image('gameover.jpg'), (width - width // 100 * (100 - i), height - height // 100 * (100 - i)))
+        fon = pygame.transform.scale(load_image('gameover.jpg'),
+                                     (width - width // 100 * (100 - i), height - height // 100 * (100 - i)))
         screen.blit(fon, (width // 2 - width // 200 * i, height // 2 - height // 200 * i))
         pygame.display.flip()
+
 
 def game_over(score):
     # вывод окна проигрыша
@@ -138,6 +143,7 @@ def pacman_win(score):  # вывод окна выигрыша
             pygame.display.flip()
             clock.tick(FPS)
 
+
 def open_win(screen, board, ghosts, pm):
     playmusic('data/win.mp3')
     for i in range(100):
@@ -146,7 +152,8 @@ def open_win(screen, board, ghosts, pm):
         board.render(screen)
         ghosts.draw(screen)
         pm.draw(screen)
-        fon = pygame.transform.scale(load_image('win.png'), (width - width // 100 * (100 - i), height - height // 100 * (100 - i)))
+        fon = pygame.transform.scale(load_image('win.png'),
+                                     (width - width // 100 * (100 - i), height - height // 100 * (100 - i)))
         screen.blit(fon, (width // 2 - width // 200 * i, height // 2 - height // 200 * i))
         pygame.display.flip()
 
@@ -167,18 +174,12 @@ def load_image(name, colorkey=None):  # загрузка изображения
     return image
 
 
-def load_score(screen, score, lifes):  # показывает очки и жизни
+def load_score(screen, score):  # показывает очки и жизни
     font = pygame.font.Font(None, 50)
     text = font.render(f"score: {score}", True, (255, 255, 255))
     text_x = 700
     text_y = 810
     screen.blit(text, (text_x, text_y))
-
-    for i in range(lifes):
-        image = load_image("Original_PacMan.png", -1)
-        image1 = pygame.transform.scale(image, (40, 40))
-        screen.blit(image1, (100 + i * 50,
-                             810))
 
 
 class Board:  # Доска
@@ -889,3 +890,73 @@ class Pacman(AbstractMob):  # пакман
         self.update_coords()
         self.board.getitem((self.x + self.rect.width // 2, self.y + self.rect.height // 2))
         self.updateanimation(time)
+
+
+def pacmandeathanimation(screen, board, pacman, pm, ghosts):
+    for i in PACMANDEATHTEXTURESLIST:
+        sleep(0.1)
+        screen.fill('black')
+        board.render(screen)
+        pacman.image = load_image(
+            i, -1)
+        pacman.image = pygame.transform.scale(pacman.image,
+                                              (pacman.board.cell_size, pacman.board.cell_size))
+        if pacman.napr == 'u':
+            pacman.image = pacman.image
+        elif pacman.napr == 'r':
+            pacman.image = pygame.transform.rotate(pacman.image, -90)
+        elif pacman.napr == 'l':
+            pacman.image = pygame.transform.rotate(pacman.image, 90)
+        elif pacman.napr == 'd':
+            pacman.image = pygame.transform.flip(pacman.image, False, True)
+        pm.draw(screen)
+        ghosts.draw(screen)
+        pygame.display.flip()
+    sleep(0.2)
+
+
+class PacmanLifeParticle(pygame.sprite.Sprite):  # отображение жизней
+    def __init__(self, board, *group, number):
+        super().__init__(*group)
+        self.images = []
+        self.board = board
+        self.images.append(
+            pygame.transform.scale(pygame.image.load('data/r1.png'), (self.board.cell_size, self.board.cell_size)))
+        self.images.append(
+            pygame.transform.scale(pygame.image.load('data/r2.png'), (self.board.cell_size, self.board.cell_size)))
+        self.images.append(
+            pygame.transform.scale(pygame.image.load('data/r3.png'), (self.board.cell_size, self.board.cell_size)))
+        self.images.append(
+            pygame.transform.scale(pygame.image.load('data/r4.png'), (self.board.cell_size, self.board.cell_size)))
+        self.images.append(
+            pygame.transform.scale(pygame.image.load('data/r5.png'), (self.board.cell_size, self.board.cell_size)))
+        self.images.append(
+            pygame.transform.scale(pygame.image.load('data/r6.png'), (self.board.cell_size, self.board.cell_size)))
+        self.index = 3
+        self.image = self.images[self.index]
+        self.image = pygame.transform.scale(self.image, (55, 55))
+        self.number = number
+        self.rect = self.image.get_rect()
+        self.rect.x = 100 + number * 50
+        self.rect.y = 805
+        self.time = random.randint(0, 1555)
+        self.mode = 0
+
+    def update(self, time):  # у жизней иногда появляется анимация
+        if self.mode == 0:
+            self.time += time
+            if self.time >= 3000:
+                self.time = 0
+                if random.randint(1, 20) == 1:
+                    self.mode = 1
+        if self.mode == 1:
+            self.time += time
+            if self.time >= ANIMATIONSPEED:
+                self.index += 1
+                self.image = self.images[self.index]
+                self.image = pygame.transform.scale(self.image, (55, 55))
+                self.time = 0
+                if self.index == 3:
+                    self.mode = 0
+                elif self.index == 5:
+                    self.index = 0
