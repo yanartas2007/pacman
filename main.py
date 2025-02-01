@@ -1,3 +1,7 @@
+import sys
+
+import pygame.sprite
+
 from classes_and_functions import *
 
 pygame.init()
@@ -5,6 +9,8 @@ size = width, height = 1000, 860
 screen = pygame.display.set_mode(size)
 FPS = 50
 clock = pygame.time.Clock()
+
+debug_load()
 
 draw_intro(screen)
 
@@ -25,8 +31,9 @@ pacman = Pacman(board, pm, coords=(1, 1))
 Ghost1(board, ghosts, coords=(8, 6), pacman=pm)
 
 close_intro(screen, board, ghosts, pm)
-
 lifes = 3
+if debug_dict['inflives']:
+    lifes += 1000
 lifeparticles = pygame.sprite.Group()
 lifeslist = []
 for i in range(lifes):
@@ -36,6 +43,7 @@ running = True
 isfirst = True
 level = 1
 score = 0
+scorewithlastbonus = 0
 while running:
     napr = None
     for event in pygame.event.get():
@@ -50,39 +58,11 @@ while running:
                 napr = 'u'
             elif event.key in (pygame.K_DOWN, pygame.K_s):
                 napr = 'd'
-            elif event.key == pygame.K_F1 and DEBUG:  # далее - кнопки отладки. по умолчанию выключены
-                board.events = []
-                board.level = -1
-                board.next_level()
-                level = 1
-            elif event.key == pygame.K_F2 and DEBUG:
-                board.events = []
-                board.level = 0
-                board.next_level()
-                level = 2
-            elif event.key == pygame.K_F3 and DEBUG:
-                board.events = []
-                board.level = 1
-                board.next_level()
-                level = 3
-            elif event.key == pygame.K_F5 and DEBUG:
-                e = PacmanLifeParticle(board, lifeparticles, number=len(lifeslist))
-                lifeslist.append(e)
-                lifes += 1
-            elif event.key == pygame.K_F6 and DEBUG:
-                lifes = 1
-                open_gameover(screen, board, ghosts, pm)
-                game_over(board.score)
-            elif event.key == pygame.K_F7 and DEBUG:
-                open_win(screen, board, ghosts, pm)
-                pacman_win(board.score)
-            elif event.key == pygame.K_F8 and DEBUG:
-                ghosts = pygame.sprite.Group()
-            elif event.key == pygame.K_F9 and DEBUG:
-                score += 1000
     time = clock.tick()
     screen.fill('black')
     if isfirst:  # в начале, пакман неподвижен, ничего не происходит до первого нажатия
+        if debug_dict['noghosts']:
+            ghosts = pygame.sprite.Group()
         board.render(screen)
         pm.draw(screen)
         ghosts.draw(screen)
@@ -98,6 +78,11 @@ while running:
 
     board.render(screen)
     score = board.score
+    if score - scorewithlastbonus >= 3000:
+        lifes += 1
+        e = PacmanLifeParticle(board, lifeparticles, number=lifes - 1)
+        lifeslist.append(e)
+        scorewithlastbonus += 3000
     board.time += time
     board.update()
     load_score(screen, score)
@@ -148,7 +133,7 @@ while running:
                     Ghost1(board, ghosts, coords=(8, 6), pacman=pm)
                     sleep(0.6)
                     isfirst = True
-            if i == 'NEXTLEVEL2':  # переход н 2 уровень
+            if i == 'NEXTLEVEL' and level == 1:  # переход н 2 уровень
                 level = 2
                 playmusic('data/win.mp3')
                 board = Board(10, 8, board.score)
@@ -164,7 +149,7 @@ while running:
                 Ghost3(board, ghosts, coords=(5, 3), pacman=pm)
                 pacman = Pacman(board, pm, coords=(5, 10))
                 isfirst = True
-            if i == 'NEXTLEVEL3':  # переход на 3 уровень
+            elif i == 'NEXTLEVEL' and level == 2:  # переход на 3 уровень
                 level = 3
                 playmusic('data/win.mp3')
                 board = Board(10, 8, board.score)
@@ -180,24 +165,6 @@ while running:
                 Ghost3(board, ghosts, coords=(12, 9), pacman=pm)
                 Ghost4(board, ghosts, coords=(13, 9), pacman=pm)
                 pacman = Pacman(board, pm, coords=(12, 18))
-                isfirst = True
-            if i == 'NEXTLEVEL1':  # переход на 1 уровень (только для отладки)
-                level = 1
-                playmusic('data/win.mp3')
-                board = Board(10, 8, board.score)
-                board.set_view(0, 0, 100)
-
-                with open('data/level_1') as f:
-                    text = f.read()
-                board.change_board([[int(j) for j in i.strip()] for i in text.split()])
-
-                board.change_itemboard(1, 1)
-
-                pm = pygame.sprite.Group()
-                ghosts = pygame.sprite.Group()
-
-                pacman = Pacman(board, pm, coords=(1, 1))
-                Ghost1(board, ghosts, coords=(8, 6), pacman=pm)
                 isfirst = True
             if i == 'WIN':
                 open_win(screen, board, ghosts, pm)

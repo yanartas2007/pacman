@@ -9,7 +9,6 @@ pygame.init()
 pygame.mixer.init()
 ANIMATIONSPEED = 80  # чем меньше тем быстрее меняется
 FPS = 50
-DEBUG = False  # отладка. если заменить на True, f1 f2 f3 переключение уровней f5 + жизнь f6 проигрыш f7 выигрыш
 pygame.init()
 size = width, height = 1000, 860
 screen = pygame.display.set_mode(size)
@@ -18,6 +17,22 @@ clock = pygame.time.Clock()
 PACMANDEATHTEXTURESLIST = ['death1.png', 'death2.png', 'death3.png', 'death4.png', 'death5.png', 'death6.png',
                            'death7.png', 'death8.png',
                            'death9.png', 'death10.png']
+
+debug_dict = {'noghosts': False,  # словарь, хранящий значения функций отладки
+              'inflives': False,
+              'fastpacman': False}
+
+
+def debug_load():
+    '''функции отладки, можно запустить через консоль. используються для тестировки'''
+    for i in sys.argv[1:]:
+        print(i)
+        if i == '--inflives': # 1000 жизней
+            debug_dict['inflives'] = True
+        elif i == '--noghosts': # без призраков
+            debug_dict['noghosts'] = True
+        elif i == '--fastpacman': # пакман в 5 раз быстрее
+            debug_dict['fastpacman'] = True
 
 
 def terminate():  # завершение
@@ -204,11 +219,12 @@ class Board:  # Доска
         self.level = 1
 
     def change_board(self, new_board):  # Смена доски
-        '''изменяет поле. самостоятельно находит длину и ширину. поле должно быть прямоугольным,
-         по краям должны быть стены,так как система туннелей отсутствует.'''
+        '''изменяет поле. самостоятельно находит длину и ширину. поле должно быть прямоугольным'''
         self.board = new_board
         self.width = len(new_board[0])
         self.height = len(new_board)
+
+
 
     def change_itemboard(self, x, y):  # расставляет точки для сбора везде, куда можно попасть
         self.itemboard = [[0] * self.width for _ in range(self.height)]
@@ -355,7 +371,7 @@ class Board:  # Доска
     def next_level(self):  # переключает уровень на следующий
         self.level += 1
         self.points = 0
-        self.events.append(f'NEXTLEVEL{self.level}')
+        self.events.append(f'NEXTLEVEL')
 
 
 class AbstractMob(pygame.sprite.Sprite):  # Движущиеся объекты
@@ -656,12 +672,11 @@ class AbstractGhost(AbstractMob):  # призраки
                     if (i - 1 in (bcopy[n - 1][f], bcopy[n][f - 1], bcopy[n + 1][f], bcopy[n][f + 1]) and
                             bcopy[n][f] == ' '):
                         bcopy[n][f] = i
-                        maxi = i
                         maxx = f
                         maxy = n
         return maxx, maxy
 
-    def ghost_run_animation(self):  # ЗДЕСЬ НУЖНО ЗАМЕНИТЬ НАЗВАНИЯ КАРТИНОК НА СИНИЕ
+    def ghost_run_animation(self):
         if self.napr == 'l':
             self.image = load_image(
                 "ldg.png", -1)
@@ -679,7 +694,7 @@ class AbstractGhost(AbstractMob):  # призраки
                 "ddg.png", -1)
             self.image = pygame.transform.scale(self.image, (self.board.cell_size, self.board.cell_size))
 
-    def ghost_eyes_animation(self):  # ЗДЕСЬ НУЖНО ЗАМЕНИТЬ НАЗВАНИЯ КАРТИНОК НА ГЛАЗА(БЕЛЫЕ)
+    def ghost_eyes_animation(self):
         if self.napr == 'l':
             self.image = load_image(
                 "wgl.png", -1)
@@ -855,6 +870,8 @@ class Pacman(AbstractMob):  # пакман
         super().__init__(screen, *group, coords=coords)
         self.update_coords()
         self.napr = 'r'
+        if debug_dict['fastpacman']:
+            self.speed *= 5
 
     def update(self, time, napr=None):
         tick = 1 / time
