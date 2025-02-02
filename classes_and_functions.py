@@ -55,7 +55,7 @@ def draw_intro(screen):
     intro_text = ["", "                                           <<< PACMAN >>>", "", "",
                   "   !!! Правила игры !!!", "",
                   "   Управляйте пакманом", "   и избегайте встречи с привидениями.", "",
-                  "   Для победы в игре соберите", "   все точки!", "", "", "", "", "   Нажмите, чтобы начать..."]
+                  "   Для победы в игре соберите", "   все точки!", "   Управление: WASD или стрелочки", "   F1 или пробел - пауза", "   За 3000 score - +1 жизнь", "   Пройдите 3 уровня", "   Нажмите, чтобы начать..."]
 
     fon = pygame.transform.scale(load_image('zastavka.jpg'), (width, height))
     screen.blit(fon, (0, 0))
@@ -302,22 +302,14 @@ class Board:  # Доска
         for i in range(self.width):
             for j in range(self.height):
                 if self.itemboard[j][i] == 1:
-                    kv = pygame.Rect(self.left + self.cell_size * i + 1 + self.cell_size // 2,
-                                     self.top + self.cell_size * j + 1 + self.cell_size // 2,
-                                     self.cell_size // 10,
-                                     self.cell_size // 10)
-                    pygame.draw.rect(screen, 'white', kv, 0)
+                    pygame.draw.circle(screen, 'white', (self.left + self.cell_size * i + 1 + self.cell_size // 2, self.top + self.cell_size * j + 1 + self.cell_size // 2), self.cell_size // 20)
                 if self.itemboard[j][i] == 2:
                     image = load_image("fruit.png", -1)
                     image1 = pygame.transform.scale(image, (self.cell_size, self.cell_size))
                     screen.blit(image1, (self.left + self.cell_size * i + 1,
                                          self.top + self.cell_size * j + 1))
                 if self.itemboard[j][i] == 3:
-                    kv = pygame.Rect(self.left + self.cell_size * i + 1 + self.cell_size // 4,
-                                     self.top + self.cell_size * j + 1 + self.cell_size // 4,
-                                     self.cell_size // 2,
-                                     self.cell_size // 2)
-                    pygame.draw.rect(screen, 'white', kv, 0)
+                    pygame.draw.circle(screen, 'white', (self.left + self.cell_size * i + 1 + self.cell_size // 2, self.top + self.cell_size * j + 1 + self.cell_size // 2), self.cell_size // 5)
 
     def getitem(self, pos):  # возвращает предмет в клетке, где пакман
         x = (pos[0] - self.left) // self.cell_size

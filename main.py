@@ -44,6 +44,9 @@ isfirst = True
 level = 1
 score = 0
 scorewithlastbonus = 0
+
+pause = False
+
 while running:
     napr = None
     for event in pygame.event.get():
@@ -58,8 +61,28 @@ while running:
                 napr = 'u'
             elif event.key in (pygame.K_DOWN, pygame.K_s):
                 napr = 'd'
+            elif event.key in (pygame.K_SPACE, pygame.K_F1):
+                pause = True if pause == False else False
     time = clock.tick()
     screen.fill('black')
+    if pause:
+        board.render(screen)
+        pm.draw(screen)
+        ghosts.draw(screen)
+        lifeparticles.draw(screen)
+        load_score(screen, score)
+        font = pygame.font.Font(None, 200)
+        text = font.render('pause', True, (0, 255, 0))
+        text_x = width // 2 - 200
+        text_y = height // 2 - 100
+        screen.blit(text, (text_x, text_y))
+        font = pygame.font.Font(None, 50)
+        text = font.render('click F1 or Space', True, (0, 255, 0))
+        text_x = width // 2 - 200
+        text_y = height // 2 +100
+        screen.blit(text, (text_x, text_y))
+        pygame.display.flip()
+        continue
     if isfirst:  # в начале, пакман неподвижен, ничего не происходит до первого нажатия
         if debug_dict['noghosts']:
             ghosts = pygame.sprite.Group()
