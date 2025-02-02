@@ -1,7 +1,3 @@
-import sys
-
-import pygame.sprite
-
 from classes_and_functions import *
 
 pygame.init()
@@ -79,7 +75,7 @@ while running:
         font = pygame.font.Font(None, 50)
         text = font.render('click F1 or Space', True, (0, 255, 0))
         text_x = width // 2 - 200
-        text_y = height // 2 +100
+        text_y = height // 2 + 100
         screen.blit(text, (text_x, text_y))
         pygame.display.flip()
         continue

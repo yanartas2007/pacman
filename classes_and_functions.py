@@ -27,11 +27,11 @@ def debug_load():
     '''функции отладки, можно запустить через консоль. используються для тестировки'''
     for i in sys.argv[1:]:
         print(i)
-        if i == '--inflives': # 1000 жизней
+        if i == '--inflives':  # 1000 жизней
             debug_dict['inflives'] = True
-        elif i == '--noghosts': # без призраков
+        elif i == '--noghosts':  # без призраков
             debug_dict['noghosts'] = True
-        elif i == '--fastpacman': # пакман в 5 раз быстрее
+        elif i == '--fastpacman':  # пакман в 5 раз быстрее
             debug_dict['fastpacman'] = True
 
 
@@ -55,7 +55,9 @@ def draw_intro(screen):
     intro_text = ["", "                                           <<< PACMAN >>>", "", "",
                   "   !!! Правила игры !!!", "",
                   "   Управляйте пакманом", "   и избегайте встречи с привидениями.", "",
-                  "   Для победы в игре соберите", "   все точки!", "   Управление: WASD или стрелочки", "   F1 или пробел - пауза", "   За 3000 score - +1 жизнь", "   Пройдите 3 уровня", "   Нажмите, чтобы начать..."]
+                  "   Для победы в игре соберите", "   все точки!", "   Управление: WASD или стрелочки",
+                  "   F1 или пробел - пауза", "   За 3000 score - +1 жизнь", "   Пройдите 3 уровня",
+                  "   Нажмите, чтобы начать..."]
 
     fon = pygame.transform.scale(load_image('zastavka.jpg'), (width, height))
     screen.blit(fon, (0, 0))
@@ -224,8 +226,6 @@ class Board:  # Доска
         self.width = len(new_board[0])
         self.height = len(new_board)
 
-
-
     def change_itemboard(self, x, y):  # расставляет точки для сбора везде, куда можно попасть
         self.itemboard = [[0] * self.width for _ in range(self.height)]
         bcopy = [['#' if self.board[i][j] != 0 else ' ' for j in range(len(self.board[i]))] for i in
@@ -302,14 +302,18 @@ class Board:  # Доска
         for i in range(self.width):
             for j in range(self.height):
                 if self.itemboard[j][i] == 1:
-                    pygame.draw.circle(screen, 'white', (self.left + self.cell_size * i + 1 + self.cell_size // 2, self.top + self.cell_size * j + 1 + self.cell_size // 2), self.cell_size // 20)
+                    pygame.draw.circle(screen, 'white', (self.left + self.cell_size * i + 1 + self.cell_size // 2,
+                                                         self.top + self.cell_size * j + 1 + self.cell_size // 2),
+                                       self.cell_size // 20)
                 if self.itemboard[j][i] == 2:
                     image = load_image("fruit.png", -1)
                     image1 = pygame.transform.scale(image, (self.cell_size, self.cell_size))
                     screen.blit(image1, (self.left + self.cell_size * i + 1,
                                          self.top + self.cell_size * j + 1))
                 if self.itemboard[j][i] == 3:
-                    pygame.draw.circle(screen, 'white', (self.left + self.cell_size * i + 1 + self.cell_size // 2, self.top + self.cell_size * j + 1 + self.cell_size // 2), self.cell_size // 5)
+                    pygame.draw.circle(screen, 'white', (self.left + self.cell_size * i + 1 + self.cell_size // 2,
+                                                         self.top + self.cell_size * j + 1 + self.cell_size // 2),
+                                       self.cell_size // 5)
 
     def getitem(self, pos):  # возвращает предмет в клетке, где пакман
         x = (pos[0] - self.left) // self.cell_size
