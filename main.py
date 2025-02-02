@@ -1,6 +1,6 @@
 from classes import *
 
-
+# 12345
 pygame.init()
 size = width, height = 500, 500
 screen = pygame.display.set_mode(size)
