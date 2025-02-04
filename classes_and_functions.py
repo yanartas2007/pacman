@@ -16,7 +16,7 @@ clock = pygame.time.Clock()
 
 PACMANDEATHTEXTURESLIST = ['death1.png', 'death2.png', 'death3.png', 'death4.png', 'death5.png', 'death6.png',
                            'death7.png', 'death8.png',
-                           'death9.png', 'death10.png']
+                           'death9.png', 'death10.png', 'death11.png', 'death12.png', 'death13.png', 'death14.png', 'death15.png', 'death16.png']
 
 debug_dict = {'noghosts': False,  # словарь, хранящий значения функций отладки
               'inflives': False,
